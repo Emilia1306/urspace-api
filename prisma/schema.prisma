@@ -1,0 +1,169 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EstadoPago {
+  Pendiente
+  Cancelado
+  Completada
+}
+
+enum EstadoReserva {
+  EnCurso
+  Pendiente
+  Cancelada
+  Completada
+}
+
+enum TipoTerreno {
+  Venta
+  Alquiler
+}
+
+model Usuario {
+  id_usuario     Int      @id @default(autoincrement())
+  nombres        String
+  apellidos      String
+  email          String   @unique
+  contrasenia    String
+  dui            String   @unique
+  fecha_registro DateTime
+
+  Notificacion             Notificacion[]
+  Terreno                  Terreno[]
+  Valoracion               Valoracion[]
+  Reservacion              Reservacion[]
+  Oferta                   Oferta[]
+  ConversacionRemitente    Conversacion[] @relation("Remitente")
+  ConversacionDestinatario Conversacion[] @relation("Destinatario")
+  Mensaje                  Mensaje[]      @relation("MensajeRemitente")
+}
+
+model Notificacion {
+  id_notificacion Int      @id @default(autoincrement())
+  tipo            String
+  mensaje         String
+  fecha_envio     DateTime
+  leido           Boolean  @default(false)
+  usuario_id      Int
+  Usuario         Usuario  @relation(fields: [usuario_id], references: [id_usuario], onDelete: Cascade)
+}
+
+model Terreno {
+  id_terreno        Int               @id @default(autoincrement())
+  nombre            String
+  ubicacion         String
+  latitud           Float?
+  longitud          Float?
+  capacidad         Int
+  precio            Float
+  tipo_terreno      TipoTerreno
+  descripcion       String?
+  publicado         Boolean           @default(false)
+  fecha_publicacion DateTime?
+  usuario_id        Int
+  Usuario           Usuario           @relation(fields: [usuario_id], references: [id_usuario], onDelete: Cascade)
+  ImagenTerreno     ImagenTerreno[]
+  Valoracion        Valoracion[]
+  Reservacion       Reservacion[]
+  Oferta            Oferta[]
+  TerrenoEtiqueta   TerrenoEtiqueta[]
+}
+
+model ImagenTerreno {
+  id_imagen_terreno Int     @id @default(autoincrement())
+  url_imagen        String
+  terreno_id        Int
+  Terreno           Terreno @relation(fields: [terreno_id], references: [id_terreno], onDelete: Cascade)
+}
+
+model Etiqueta {
+  id_etiqueta     Int               @id @default(autoincrement())
+  nombre          String
+  TerrenoEtiqueta TerrenoEtiqueta[]
+}
+
+model TerrenoEtiqueta {
+  id_terreno_etiqueta Int      @id @default(autoincrement())
+  terreno_id          Int
+  etiqueta_id         Int
+  Terreno             Terreno  @relation(fields: [terreno_id], references: [id_terreno], onDelete: Cascade)
+  Etiqueta            Etiqueta @relation(fields: [etiqueta_id], references: [id_etiqueta], onDelete: Cascade)
+}
+
+model Valoracion {
+  id_valoracion    Int      @id @default(autoincrement())
+  calificacion     Int
+  comentario       String?
+  fecha_valoracion DateTime
+  terreno_id       Int
+  usuario_id       Int
+  Terreno          Terreno  @relation(fields: [terreno_id], references: [id_terreno], onDelete: Cascade)
+  Usuario          Usuario  @relation(fields: [usuario_id], references: [id_usuario], onDelete: Cascade)
+}
+
+model Pago {
+  id_pago        Int         @id @default(autoincrement())
+  monto          Float
+  fecha_pago     DateTime
+  metodo_pago    String
+  estado         EstadoPago
+  reservacion_id Int
+  Reservacion    Reservacion @relation(fields: [reservacion_id], references: [id_reservacion], onDelete: Cascade)
+}
+
+model Reservacion {
+  id_reservacion Int           @id @default(autoincrement())
+  fecha_inicio   DateTime
+  fecha_fin      DateTime
+  impuestos      Float?
+  subtotal       Float
+  precio_total   Float
+  estado         EstadoReserva
+  terreno_id     Int
+  usuario_id     Int
+  Terreno        Terreno       @relation(fields: [terreno_id], references: [id_terreno], onDelete: Cascade)
+  Usuario        Usuario       @relation(fields: [usuario_id], references: [id_usuario], onDelete: Cascade)
+
+  Pago Pago[] // Añade esta línea para definir la relación opuesta
+}
+
+model Oferta {
+  id_oferta    Int      @id @default(autoincrement())
+  fecha_oferta DateTime
+  terreno_id   Int
+  usuario_id   Int
+  Terreno      Terreno  @relation(fields: [terreno_id], references: [id_terreno], onDelete: Cascade)
+  Usuario      Usuario  @relation(fields: [usuario_id], references: [id_usuario], onDelete: Cascade)
+}
+
+model Conversacion {
+  id_conversacion         Int       @id @default(autoincrement())
+  fecha_inicio            DateTime
+  usuario_remitente_id    Int
+  usuario_destinatario_id Int
+  UsuarioRemitente        Usuario   @relation("Remitente", fields: [usuario_remitente_id], references: [id_usuario], onDelete: Cascade)
+  UsuarioDestinatario     Usuario   @relation("Destinatario", fields: [usuario_destinatario_id], references: [id_usuario], onDelete: Cascade)
+  Mensaje                 Mensaje[]
+}
+
+model Mensaje {
+  id_mensaje           Int          @id @default(autoincrement())
+  mensaje              String
+  fecha_envio          DateTime
+  usuario_remitente_id Int
+  conversacion_id      Int
+  UsuarioRemitente     Usuario      @relation("MensajeRemitente", fields: [usuario_remitente_id], references: [id_usuario], onDelete: Cascade)
+  Conversacion         Conversacion @relation(fields: [conversacion_id], references: [id_conversacion], onDelete: Cascade)
+}
