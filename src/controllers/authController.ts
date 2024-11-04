@@ -38,3 +38,52 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     next(error); // Pasa el error al siguiente manejador
   }
 };
+
+// Endpoint para registrar un nuevo usuario
+export const register = async (req: Request, res: Response, next: NextFunction) => {
+  const { nombres, apellidos, email, contrasenia, dui } = req.body;
+
+  try {
+    // Verificar si el usuario ya existe por el email o el DUI
+    const existingUser = await prisma.usuario.findUnique({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ message: 'El email ya está registrado' });
+    }
+
+    const existingDUI = await prisma.usuario.findUnique({ where: { dui } });
+    if (existingDUI) {
+      return res.status(400).json({ message: 'El DUI ya está registrado' });
+    }
+
+    // Encriptar la contraseña
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(contrasenia, saltRounds);
+
+    // Crear el nuevo usuario en la base de datos
+    const newUser = await prisma.usuario.create({
+      data: {
+        nombres,
+        apellidos,
+        email,
+        contrasenia: hashedPassword,
+        dui,
+        fecha_registro: new Date(),
+      },
+    });
+
+    // Responder con el usuario creado
+    return res.status(201).json({
+      message: 'Usuario registrado exitosamente',
+      usuario: {
+        id: newUser.id_usuario,
+        nombres: newUser.nombres,
+        apellidos: newUser.apellidos,
+        email: newUser.email,
+        dui: newUser.dui,
+        fecha_registro: newUser.fecha_registro,
+      },
+    });
+  } catch (error) {
+    next(error); // Pasa el error al siguiente manejador
+  }
+};
