@@ -61,14 +61,12 @@ export default class TerrenoController {
   }
 
   static async create(req: Request, res: Response) {
-    const { nombre, ubicacion, latitud, longitud, capacidad, precio, tipo_terreno, descripcion, usuario_id } = req.body;
+    const { nombre, ubicacion, latitud, longitud, capacidad, precio, tipo_terreno, descripcion, usuario_id, etiquetas } = req.body;
     const files = req.files as Express.Multer.File[];
 
     try {
-      // Extrae las URLs de las imágenes
       const imagenes = files.map(file => `/uploads/${file.filename}`);
 
-      // Crea el terreno con las URLs de las imágenes
       const nuevoTerreno = await Terreno.createTerreno({
         nombre,
         ubicacion,
@@ -79,12 +77,13 @@ export default class TerrenoController {
         tipo_terreno,
         descripcion,
         usuario_id: Number(usuario_id),
-        imagenes, // Pasa las URLs de las imágenes al modelo
+        imagenes,   
+        etiquetas,  
       });
 
       res.status(201).json(nuevoTerreno);
     } catch (error) {
-      res.status(500).json({ message: 'Error al crear el terreno con imágenes', error });
+      res.status(500).json({ message: 'Error al crear el terreno con imágenes y etiquetas', error });
     }
   }
 
@@ -144,5 +143,28 @@ export default class TerrenoController {
       res.status(500).json({ message: 'Error al obtener terrenos por etiquetas', error });
     }
   }
+
+  static async getTerrenosPublicados(req: Request, res: Response) {
+    console.log("Llamando a getTerrenosPublicados en el controlador");
+    try {
+      const terrenos = await Terreno.getTerrenosPublicados();
+      console.log("Datos obtenidos de terrenos:", terrenos);
+      res.status(200).json(terrenos);
+    } catch (error) {
+      console.error('Error detallado al obtener terrenos publicados:', error);
+      res.status(500).json({ message: 'Error al obtener el terreno', error: error instanceof Error ? error.stack : error });
+    }
+  }
+
+  static async getTerrenosNoPublicados(req: Request, res: Response) {
+    try {
+      const terrenos = await Terreno.getTerrenosNoPublicados();
+      res.status(200).json(terrenos);
+    } catch (error) {
+      console.error('Error detallado al obtener terrenos publicados:', error);
+      res.status(500).json({ message: 'Error al obtener terrenos no publicados', error: error });
+    }
+  }
+
   
 }

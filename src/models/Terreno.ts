@@ -1,4 +1,4 @@
-import { TipoTerreno, PrismaClient } from '@prisma/client';
+import { TipoTerreno, PrismaClient, Prisma } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export default class Terreno {
@@ -45,21 +45,36 @@ export default class Terreno {
     tipo_terreno: TipoTerreno;
     descripcion?: string;
     usuario_id: number;
-    imagenes?: string[]; 
+    imagenes?: string[];
+    etiquetas?: number[]; 
   }) {
-    const { imagenes, ...terrenoData } = data;
+    const { imagenes, etiquetas, ...terrenoData } = data;
 
     return await prisma.terreno.create({
       data: {
         ...terrenoData,
+        publicado: true,
+        fecha_publicacion: new Date(),
         ImagenTerreno: {
           create: imagenes?.map(url => ({
             url_imagen: url,
           })),
         },
+        TerrenoEtiqueta: etiquetas
+          ? {
+              create: etiquetas.map(id_etiqueta => ({
+                etiqueta_id: id_etiqueta,
+              })),
+            }
+          : undefined,
       },
       include: {
         ImagenTerreno: true,
+        TerrenoEtiqueta: {
+          include: {
+            Etiqueta: true, 
+          },
+        },
       },
     });
   }
@@ -111,6 +126,20 @@ export default class Terreno {
           },
         },
       },
+    });
+  }
+
+  static async getTerrenosPublicados() {
+    console.log("Ejecutando consulta en getTerrenosPublicados en el modelo");
+    return await prisma.terreno.findMany({
+      where: { publicado: true }
+    });
+  }
+  
+
+  static async getTerrenosNoPublicados() {
+    return await prisma.terreno.findMany({
+      where: { publicado: false }
     });
   }
 }

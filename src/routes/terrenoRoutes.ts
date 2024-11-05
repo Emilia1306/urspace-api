@@ -10,8 +10,11 @@ router.get('/terrenos/:id', TerrenoController.getById); // Obtener terreno por I
 router.get('/terrenos/tipo/:tipo', TerrenoController.getByTipo); // Obtener terrenos por tipo
 router.get('/terrenos/usuario/:usuario_id', TerrenoController.getByUsuarioId); // Obtener terrenos por ID de usuario
 router.get('/terrenos/ubicacion/:ubicacion', TerrenoController.getByUbicacion); // Obtener terrenos por ubicación
+router.get('/terrenos/publicados', TerrenoController.getTerrenosPublicados); // Nueva ruta para terrenos publicados
+router.get('/terrenos/no-publicados', TerrenoController.getTerrenosNoPublicados); // Nueva ruta para terrenos no publicados
 router.post('/terrenos', upload.array('imagenes', 10), TerrenoController.create); // Permitimos hasta 10 imágenes
 router.patch('/terrenos/:id', TerrenoController.update); // Actualizar terreno
 router.delete('/terrenos/:id', TerrenoController.delete); // Eliminar terreno
+
 
 export default router;
