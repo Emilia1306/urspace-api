@@ -105,21 +105,21 @@ export default class Terreno {
     });
   }
 
-  static async getTerrenosByEtiquetas(etiquetas: string[]) {
+  static async getTerrenosByEtiquetas(etiquetasArray: string[]) {
     return await prisma.terreno.findMany({
       where: {
         TerrenoEtiqueta: {
           some: {
             Etiqueta: {
-              nombre: { in: etiquetas },
+              nombre: {
+                in: etiquetasArray,
+              },
             },
           },
         },
       },
       include: {
         ImagenTerreno: true,
-        Valoracion: true,
-        Reservacion: true,
         TerrenoEtiqueta: {
           include: {
             Etiqueta: true,
@@ -130,16 +130,65 @@ export default class Terreno {
   }
 
   static async getTerrenosPublicados() {
-    console.log("Ejecutando consulta en getTerrenosPublicados en el modelo");
     return await prisma.terreno.findMany({
-      where: { publicado: true }
+      where: { publicado: true },
+      include: {
+        ImagenTerreno: true,
+        TerrenoEtiqueta: {
+          include: {
+            Etiqueta: true,
+          },
+        },
+      },
     });
   }
   
 
   static async getTerrenosNoPublicados() {
     return await prisma.terreno.findMany({
-      where: { publicado: false }
+      where: { publicado: false },
+      include: {
+        ImagenTerreno: true,
+        TerrenoEtiqueta: {
+          include: {
+            Etiqueta: true,
+          },
+        },
+      },
+    });
+  }
+
+  static async getImagenesByTerrenoId(id_terreno: number) {
+    return await prisma.imagenTerreno.findMany({
+      where: { terreno_id: id_terreno },
+      select: { url_imagen: true }  // Solo seleccionamos la URL de las imágenes
+    });
+  }
+
+  static async getUbicacionByTerrenoId(id: number) {
+    return await prisma.terreno.findUnique({
+      where: { id_terreno: id },
+      select: { ubicacion: true },
+    });
+  }
+
+  static async deshabilitarTerreno(
+    id: number,
+    data: Partial<{
+      publicado: boolean;
+      precio: number;
+      capacidad: number;
+      tipo_terreno: TipoTerreno; // Especifica el tipo correctamente aquí
+      descripcion: string;
+      ubicacion: string;
+      nombre: string;
+      latitud: number;
+      longitud: number;
+    }>
+  ) {
+    return await prisma.terreno.update({
+      where: { id_terreno: id },
+      data,
     });
   }
 }

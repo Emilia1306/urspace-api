@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, RequestHandler  } from 'express';
 import { ParsedQs } from 'qs';
 import Terreno from '../models/Terreno';
 
@@ -120,27 +120,25 @@ export default class TerrenoController {
     }
   }
 
-  static async getByEtiquetas(req: Request, res: Response) {
+  static async getByEtiquetas(req: Request, res: Response): Promise<Response | void> {
     const etiquetas = req.query.etiquetas as string | string[] | undefined;
-  
+
     if (!etiquetas) {
       return res.status(400).json({ message: 'Debe proporcionar al menos una etiqueta' });
     }
-  
+
     try {
-      // Convierte etiquetas en un array de strings
-      const etiquetasArray: string[] = Array.isArray(etiquetas)
-        ? etiquetas
-        : etiquetas.split(',');
-  
+      const etiquetasArray = Array.isArray(etiquetas) ? etiquetas : etiquetas.split(',');
+
       if (etiquetasArray.length === 0) {
         return res.status(400).json({ message: 'Debe proporcionar al menos una etiqueta válida' });
       }
-  
+
       const terrenos = await Terreno.getTerrenosByEtiquetas(etiquetasArray);
-      res.status(200).json(terrenos);
+      return res.status(200).json(terrenos);
     } catch (error) {
-      res.status(500).json({ message: 'Error al obtener terrenos por etiquetas', error });
+      console.error('Error detallado al obtener terrenos por etiquetas:', error);
+      return res.status(500).json({ message: 'Error al obtener terrenos por etiquetas', error: error instanceof Error ? error.message : error });
     }
   }
 
@@ -166,5 +164,49 @@ export default class TerrenoController {
     }
   }
 
+  static async getImagenesByTerrenoId(req: Request, res: Response): Promise<Response | void> {
+    const { id } = req.params;
+
+    try {
+      const imagenes = await Terreno.getImagenesByTerrenoId(Number(id));
+
+      if (imagenes.length === 0) {
+        return res.status(404).json({ message: 'No se encontraron imágenes para el terreno especificado' });
+      }
+
+      return res.status(200).json(imagenes);
+    } catch (error) {
+      console.error('Error detallado al obtener imágenes por id de terreno:', error);
+      return res.status(500).json({ message: 'Error al obtener las imágenes del terreno', error: error instanceof Error ? error.message : error });
+    }
+  }
+
+  static async getUbicacionByTerrenoId(req: Request, res: Response): Promise<Response | void> {
+    const { id } = req.params;
+
+    try {
+      const terreno = await Terreno.getUbicacionByTerrenoId(Number(id));
+
+      if (!terreno) {
+        return res.status(404).json({ message: 'Terreno no encontrado' });
+      }
+
+      return res.status(200).json({ ubicacion: terreno.ubicacion });
+    } catch (error) {
+      console.error('Error detallado al obtener la ubicación del terreno:', error);
+      return res.status(500).json({ message: 'Error al obtener la ubicación del terreno', error: error instanceof Error ? error.message : error });
+    }
+  }
+
+  static deshabilitar: RequestHandler = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+      // Lógica para deshabilitar el terreno
+      const terreno = await Terreno.deshabilitarTerreno(Number(id), { publicado: false });
+      res.status(200).json({ message: 'Terreno deshabilitado', terreno });
+    } catch (error) {
+      res.status(500).json({ message: 'Error al deshabilitar el terreno', error });
+    }
+  };
   
 }

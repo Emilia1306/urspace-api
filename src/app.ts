@@ -10,6 +10,7 @@ import reservaRoutes from "./routes/reservaRoutes";
 import notificacionRoutes from "./routes/notificacionRoutes";
 import conversacionRoutes from "./routes/conversacionRoutes";
 import mensajeRoutes from "./routes/mensajeRoutes";
+import valoracionRoutes from "./routes/valoracionRoutes";
 
 import configureSocket from "./config/socket";
 
@@ -27,6 +28,8 @@ app.use("/api", reservaRoutes);
 app.use("/api", notificacionRoutes);
 app.use("/api", conversacionRoutes);
 app.use("/api", mensajeRoutes);
+app.use('/api', valoracionRoutes);
+
 
 // Crear el servidor HTTP y configurar Socket.IO
 const server = http.createServer(app);
@@ -34,3 +37,9 @@ const io = configureSocket(server); // Configuración de Socket.IO
 
 // Iniciar el servidor
 server.listen(3000, () => console.log("Server running on port 3000"));
+
+app.use((req, res, next) => {
+    console.log(`Método: ${req.method}, Ruta: ${req.path}`);
+    next();
+});
+  
