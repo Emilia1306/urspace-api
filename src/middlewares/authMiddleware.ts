@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { jwtSecret } from '../config/jwtConfig';
 
 // Extender la interfaz Request para incluir 'user'
-interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends Request {
   user?: {
     id: number;
     email: string;
