@@ -17,6 +17,11 @@ import configureSocket from "./config/socket";
 const app = express();
 const prisma = new PrismaClient();
 
+app.use(cors({
+    origin: 'http://localhost:5173', //(PORT:5173)
+    credentials: true,
+  }));
+
 app.use(cors());
 app.use(express.json());
 

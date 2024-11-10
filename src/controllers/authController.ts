@@ -8,21 +8,25 @@ const prisma = new PrismaClient();
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body; // 'password' en el request, 'contrasenia' en la base de datos
-
+  console.log("Received login request", { email, password });
   try {
     // Verificar si el usuario existe usando el campo 'email'
     const usuario = await prisma.usuario.findUnique({
       where: { email },
     });
 
+    console.log("User found in database:", usuario);
+
     if (!usuario) {
+      console.log("User not found, sending 401 response");
       return res.status(401).json({ message: 'Usuario o contraseña incorrectos' });
     }
 
     // Verificar la contraseña usando el campo 'contrasenia' de la base de datos
     const isPasswordValid = await bcrypt.compare(password, usuario.contrasenia);
-
+    console.log("Password validation result:", isPasswordValid);
     if (!isPasswordValid) {
+      console.log("Invalid password, sending 401 response");
       return res.status(401).json({ message: 'Usuario o contraseña incorrectos' });
     }
 
@@ -32,9 +36,11 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       jwtSecret,
       { expiresIn: jwtExpiration }
     );
+    console.log("Generated JWT token:", token);
 
     return res.json({ message: 'Login exitoso', token });
   } catch (error) {
+    console.error("Error in login function:", error); 
     next(error); // Pasa el error al siguiente manejador
   }
 };
