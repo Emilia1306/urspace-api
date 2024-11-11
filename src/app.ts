@@ -11,6 +11,8 @@ import notificacionRoutes from "./routes/notificacionRoutes";
 import conversacionRoutes from "./routes/conversacionRoutes";
 import mensajeRoutes from "./routes/mensajeRoutes";
 import valoracionRoutes from "./routes/valoracionRoutes";
+import etiquetaRoutes from './routes/etiquetaRoutes';
+
 
 import configureSocket from "./config/socket";
 
@@ -34,6 +36,8 @@ app.use("/api", notificacionRoutes);
 app.use("/api", conversacionRoutes);
 app.use("/api", mensajeRoutes);
 app.use('/api', valoracionRoutes);
+app.use('/api', etiquetaRoutes);
+
 
 
 // Crear el servidor HTTP y configurar Socket.IO
