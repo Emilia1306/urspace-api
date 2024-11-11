@@ -1,4 +1,4 @@
-import { TipoTerreno, PrismaClient, Prisma } from '@prisma/client';
+import { TipoTerreno, PrismaClient, Prisma } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export default class Terreno {
@@ -31,7 +31,7 @@ export default class Terreno {
 
   static async getTerrenosByUbicacion(ubicacion: string) {
     return await prisma.terreno.findMany({
-      where: { ubicacion: { contains: ubicacion, mode: 'insensitive' } },
+      where: { ubicacion: { contains: ubicacion, mode: "insensitive" } },
     });
   }
 
@@ -46,37 +46,44 @@ export default class Terreno {
     descripcion?: string;
     usuario_id: number;
     imagenes?: string[];
-    etiquetas?: number[]; 
+    etiquetas?: number[];
   }) {
     const { imagenes, etiquetas, ...terrenoData } = data;
 
-    return await prisma.terreno.create({
-      data: {
-        ...terrenoData,
-        publicado: true,
-        fecha_publicacion: new Date(),
-        ImagenTerreno: {
-          create: imagenes?.map(url => ({
-            url_imagen: url,
-          })),
+    try {
+      console.log("Datos recibidos para crear el terreno:", data);
+      return await prisma.terreno.create({
+        data: {
+          ...terrenoData,
+          publicado: true,
+          fecha_publicacion: new Date(),
+          ImagenTerreno: {
+            create: imagenes?.map((url) => ({
+              url_imagen: url,
+            })),
+          },
+          TerrenoEtiqueta:
+            etiquetas && etiquetas.length > 0
+              ? {
+                  create: etiquetas.map((id_etiqueta) => ({
+                    etiqueta_id: id_etiqueta,
+                  })),
+                }
+              : undefined,
         },
-        TerrenoEtiqueta: etiquetas
-          ? {
-              create: etiquetas.map(id_etiqueta => ({
-                etiqueta_id: id_etiqueta,
-              })),
-            }
-          : undefined,
-      },
-      include: {
-        ImagenTerreno: true,
-        TerrenoEtiqueta: {
-          include: {
-            Etiqueta: true, 
+        include: {
+          ImagenTerreno: true,
+          TerrenoEtiqueta: {
+            include: {
+              Etiqueta: true,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (error) {
+      console.error("Error al crear el terreno en Prisma:", error);
+      throw new Error("Error al crear el terreno");
+    }
   }
 
   static async updateTerreno(
@@ -142,7 +149,6 @@ export default class Terreno {
       },
     });
   }
-  
 
   static async getTerrenosNoPublicados() {
     return await prisma.terreno.findMany({
@@ -161,7 +167,7 @@ export default class Terreno {
   static async getImagenesByTerrenoId(id_terreno: number) {
     return await prisma.imagenTerreno.findMany({
       where: { terreno_id: id_terreno },
-      select: { url_imagen: true }  // Solo seleccionamos la URL de las imágenes
+      select: { url_imagen: true }, // Solo seleccionamos la URL de las imágenes
     });
   }
 
