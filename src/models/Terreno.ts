@@ -26,6 +26,7 @@ export default class Terreno {
   static async getTerrenosByUsuarioId(usuario_id: number) {
     return await prisma.terreno.findMany({
       where: { usuario_id },
+      include: { ImagenTerreno: true },
     });
   }
 
