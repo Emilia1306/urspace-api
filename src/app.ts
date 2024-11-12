@@ -3,6 +3,9 @@ import http from "http";
 import cors from "cors";
 import path from "path";
 import { PrismaClient } from "@prisma/client";
+import { Server } from 'socket.io';
+import { authenticateToken } from './middlewares/authMiddleware';
+
 
 import authRoutes from "./routes/authRoutes";
 import terrenoRoutes from "./routes/terrenoRoutes";
@@ -53,7 +56,44 @@ app.use("/api", ofertaRoutes);
 
 // Crear el servidor HTTP y configurar Socket.IO
 const server = http.createServer(app);
-const io = configureSocket(server); // Configuración de Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: 'http://localhost:5173', // URL del frontend
+    methods: ['GET', 'POST'],
+  },
+});
+
+// Configuración de Socket.IO
+
+io.on('connection', (socket) => {
+  console.log('Usuario conectado', socket.id);
+
+  // Escuchar el identificador del usuario cuando se conecta
+  socket.on('registerUser', (userId) => {
+    socket.data.userId = userId;
+    console.log(`Usuario registrado en socket: ${userId}`);
+  });
+
+  socket.on('joinRoom', (conversacionId) => {
+    if (!conversacionId) {
+      console.error('ID de conversación inválido');
+      return;
+    }
+    socket.join(conversacionId);
+  });
+  
+  socket.on('enviarMensaje', (mensajeData) => {
+    if (!mensajeData.conversacionId || !mensajeData.mensaje) {
+      console.error('Datos de mensaje incompletos');
+      return;
+    }
+    io.to(mensajeData.conversacionId).emit('recibirMensaje', mensajeData);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Usuario desconectado', socket.id);
+  });
+});
 
 // Iniciar el servidor
 server.listen(3000, () => console.log("Server running on port 3000"));
