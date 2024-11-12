@@ -6,11 +6,14 @@ import upload from '../config/multerConfig';
 const router = express.Router();
 
 router.get('/terrenos', TerrenoController.getAll); 
+
 router.get('/terrenos/publicados', TerrenoController.getTerrenosPublicados); 
 router.get('/terrenos/no-publicados', TerrenoController.getTerrenosNoPublicados);
 //router.get('/terrenos/etiquetas', (req, res) => TerrenoController.getByEtiquetas(req, res));
 
 router.get('/terrenos/:id', TerrenoController.getById); 
+router.get('/terrenos/excluir-usuario/:usuario_id', TerrenoController.getTerrenosExcluyendoUsuario);
+
 //router.get('/terrenos/:id/imagenes', TerrenoController.getImagenesByTerrenoId);
 //router.get('/terrenos/:id/ubicacion', TerrenoController.getUbicacionByTerrenoId);
 

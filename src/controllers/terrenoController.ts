@@ -315,4 +315,16 @@ export default class TerrenoController {
         .json({ message: "Error al deshabilitar el terreno", error });
     }
   };
+
+  static async getTerrenosExcluyendoUsuario(req: Request, res: Response) {
+    const { usuario_id } = req.params;
+  
+    try {
+      const terrenos = await Terreno.getTerrenosExcluyendoUsuario(Number(usuario_id));
+      res.status(200).json(terrenos);
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener terrenos", error });
+    }
+  }
+  
 }
