@@ -72,4 +72,48 @@ export default class Reserva {
       },
     });
   }
+  // Función para actualizar estados de reservas
+  static async actualizarEstadosDeReservas() {
+    const hoy = new Date();
+    const inicioDelDia = new Date(hoy);
+    inicioDelDia.setHours(0, 0, 0, 0);
+    const finDelDia = new Date(hoy);
+    finDelDia.setHours(23, 59, 59, 999);
+
+    try {
+
+      const enCurso = await prisma.reservacion.updateMany({
+        where: {
+          estado: EstadoReserva.Pendiente,
+          fecha_inicio: {
+            gte: inicioDelDia,
+            lte: finDelDia,
+          },
+        },
+        data: {
+          estado: EstadoReserva.EnCurso,
+        },
+      });
+
+      console.log(`Reservas actualizadas a "EnCurso": ${enCurso.count}`);
+
+      const completadas = await prisma.reservacion.updateMany({
+        where: {
+          estado: EstadoReserva.EnCurso,
+          fecha_fin: {
+            lt: inicioDelDia,
+          },
+        },
+        data: {
+          estado: EstadoReserva.Completada,
+        },
+      });
+
+      console.log(`Reservas actualizadas a "Completada": ${completadas.count}`);
+      console.log("Estados de reservas actualizados correctamente.");
+    } catch (error) {
+      console.error("Error al actualizar estados de reservas:", error);
+    }
+  }
 }
+
