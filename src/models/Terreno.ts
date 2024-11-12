@@ -198,4 +198,20 @@ export default class Terreno {
       data,
     });
   }
+
+  static async getTerrenosExcluyendoUsuario(usuario_id: number) {
+    return await prisma.terreno.findMany({
+      where: {
+        usuario_id: {
+          not: usuario_id, // Filtra terrenos que no pertenecen al usuario logueado
+        },
+      },
+      include: {
+        ImagenTerreno: true,
+        Valoracion: true,
+        Reservacion: true,
+      },
+    });
+  }
+  
 }
