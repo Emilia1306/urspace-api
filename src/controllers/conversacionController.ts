@@ -13,13 +13,11 @@ export default class ConversacionController {
       );
       res.status(201).json(nuevaConversacion);
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error al crear la conversación", error });
+      res.status(500).json({ message: "Error al crear la conversación", error });
     }
   }
 
-  // Obtener conversaciones de un usuario
+  
   static async getConversacionesByUsuario(req: Request, res: Response) {
     const { id_usuario } = req.params;
 
@@ -29,9 +27,7 @@ export default class ConversacionController {
       );
       res.status(200).json(conversaciones);
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error al obtener las conversaciones", error });
+      res.status(500).json({ message: "Error al obtener las conversaciones", error });
     }
   }
 }

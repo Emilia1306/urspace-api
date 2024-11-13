@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -16,14 +16,49 @@ export default class Conversacion {
 
   // Obtener todas las conversaciones de un usuario
   static async getConversacionesByUsuario(id_usuario: number) {
-    return await prisma.conversacion.findMany({
+    const conversaciones = await prisma.conversacion.findMany({
       where: {
         OR: [
           { usuario_remitente_id: id_usuario },
           { usuario_destinatario_id: id_usuario },
         ],
       },
-      orderBy: { fecha_inicio: 'desc' },
+      include: {
+        Mensaje: {
+          orderBy: { fecha_envio: "desc" },
+          take: 1, // Obtiene el último mensaje
+        },
+        UsuarioRemitente: {
+          select: {
+            nombres: true,
+            apellidos: true,
+          },
+        },
+        UsuarioDestinatario: {
+          select: {
+            nombres: true,
+            apellidos: true,
+          },
+        },
+      },
+      orderBy: {
+        fecha_inicio: "desc",
+      },
+    });
+
+    return conversaciones.map((conversacion) => {
+      const esRemitente = conversacion.usuario_remitente_id === id_usuario;
+      const otroUsuario = esRemitente ? conversacion.UsuarioDestinatario : conversacion.UsuarioRemitente;
+      const ultimoMensaje = conversacion.Mensaje[0]?.mensaje || "";
+
+      return {
+        id_conversacion: conversacion.id_conversacion,
+        fecha_inicio: conversacion.fecha_inicio,
+        otro_usuario_id: esRemitente ? conversacion.usuario_destinatario_id : conversacion.usuario_remitente_id,
+        otro_usuario_nombres: otroUsuario?.nombres,
+        otro_usuario_apellidos: otroUsuario?.apellidos,
+        ultimo_mensaje: ultimoMensaje,
+      };
     });
   }
 }
