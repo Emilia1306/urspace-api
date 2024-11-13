@@ -3,9 +3,7 @@ import http from "http";
 import cors from "cors";
 import path from "path";
 import { PrismaClient } from "@prisma/client";
-import { Server } from 'socket.io';
 import { authenticateToken } from './middlewares/authMiddleware';
-
 
 import authRoutes from "./routes/authRoutes";
 import terrenoRoutes from "./routes/terrenoRoutes";
@@ -21,28 +19,19 @@ import cron from "node-cron";
 import Reserva from "./models/Reserva";
 import configureSocket from "./config/socket";
 
-// Programa el cron job para ejecutar a medianoche cada día
-cron.schedule("*/15 * * * *", async () => {
-  console.log(
-    "Ejecutando actualización de estados de reservas cada 15 minutos..."
-  );
-  await Reserva.actualizarEstadosDeReservas();
-});
-
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(
   cors({
-    origin: "http://localhost:5173", //(PORT:5173)
+    origin: "http://localhost:5173",
     credentials: true,
   })
 );
 
-app.use(cors());
 app.use(express.json());
 
-// Rutas de autenticación
+// Define your routes
 app.use("/api/auth", authRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use("/api", terrenoRoutes);
@@ -54,50 +43,20 @@ app.use("/api", valoracionRoutes);
 app.use("/api", etiquetaRoutes);
 app.use("/api", ofertaRoutes);
 
-// Crear el servidor HTTP y configurar Socket.IO
+// Set up cron job for reservations
+cron.schedule("*/15 * * * *", async () => {
+  console.log("Ejecutando actualización de estados de reservas cada 15 minutos...");
+  await Reserva.actualizarEstadosDeReservas();
+});
+
+// Create the HTTP server and attach Socket.IO
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: 'http://localhost:5173', // URL del frontend
-    methods: ['GET', 'POST'],
-  },
-});
+const io = configureSocket(server);  // Use configureSocket to set up Socket.IO
 
-// Configuración de Socket.IO
-
-io.on('connection', (socket) => {
-  console.log('Usuario conectado', socket.id);
-
-  // Escuchar el identificador del usuario cuando se conecta
-  socket.on('registerUser', (userId) => {
-    socket.data.userId = userId;
-    console.log(`Usuario registrado en socket: ${userId}`);
-  });
-
-  socket.on('joinRoom', (conversacionId) => {
-    if (!conversacionId) {
-      console.error('ID de conversación inválido');
-      return;
-    }
-    socket.join(conversacionId);
-  });
-  
-  socket.on('enviarMensaje', (mensajeData) => {
-    if (!mensajeData.conversacionId || !mensajeData.mensaje) {
-      console.error('Datos de mensaje incompletos');
-      return;
-    }
-    io.to(mensajeData.conversacionId).emit('recibirMensaje', mensajeData);
-  });
-
-  socket.on('disconnect', () => {
-    console.log('Usuario desconectado', socket.id);
-  });
-});
-
-// Iniciar el servidor
+// Start the server
 server.listen(3000, () => console.log("Server running on port 3000"));
 
+// Middleware to log requests
 app.use((req, res, next) => {
   console.log(`Método: ${req.method}, Ruta: ${req.path}`);
   next();
