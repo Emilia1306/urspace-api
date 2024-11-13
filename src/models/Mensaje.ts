@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -19,7 +19,7 @@ export default class Mensaje {
   static async getMensajesByConversacion(conversacion_id: number) {
     return await prisma.mensaje.findMany({
       where: { conversacion_id },
-      orderBy: { fecha_envio: 'asc' },
+      orderBy: { fecha_envio: "asc" },
     });
   }
 }
