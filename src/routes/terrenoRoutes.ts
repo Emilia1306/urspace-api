@@ -22,6 +22,7 @@ router.get('/terrenos/usuario/:usuario_id', TerrenoController.getByUsuarioId);
 router.get('/terrenos/ubicacion/:ubicacion', TerrenoController.getByUbicacion); 
 
 router.post('/terrenos', upload.array('imagenes', 10), TerrenoController.create); 
+router.post('/terrenos/filtrar', TerrenoController.getTerrenosFiltrados);
 router.patch('/terrenos/:id/deshabilitar', TerrenoController.deshabilitar);
 router.patch('/terrenos/:id', TerrenoController.update); 
 router.delete('/terrenos/:id', TerrenoController.delete); 

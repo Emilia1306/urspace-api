@@ -326,5 +326,23 @@ export default class TerrenoController {
       res.status(500).json({ message: "Error al obtener terrenos", error });
     }
   }
+
+  static async getTerrenosFiltrados(req: Request, res: Response) {
+    const { country, city, etiquetas } = req.body;
+  
+    try {
+      const filtros = {
+        country,
+        city,
+        etiquetas: etiquetas && Array.isArray(etiquetas) ? etiquetas.map(Number) : [],
+      };
+  
+      const terrenos = await Terreno.getTerrenosFiltrados(filtros);
+      res.status(200).json(terrenos);
+    } catch (error) {
+      console.error("Error en getTerrenosFiltrados:", error);
+      res.status(500).json({ message: "Error al filtrar terrenos", error });
+    }
+  }
   
 }

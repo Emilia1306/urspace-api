@@ -213,5 +213,50 @@ export default class Terreno {
       },
     });
   }
+
+  static async getTerrenosFiltrados(filtros: { country?: string; city?: string; etiquetas?: number[] }) {
+    const { country, city, etiquetas } = filtros;
+  
+    // Construir condiciones de filtrado
+    let whereCondition: Prisma.TerrenoWhereInput = {};
+  
+    if (country && city) {
+      // Filtrar por país y ciudad juntos
+      whereCondition.ubicacion = {
+        contains: `${country}, ${city}`,
+        mode: "insensitive",
+      };
+    } else if (country) {
+      // Filtrar solo por país
+      whereCondition.ubicacion = {
+        contains: country,
+        mode: "insensitive",
+      };
+    }
+  
+    if (etiquetas && etiquetas.length > 0) {
+      // Filtrar por etiquetas
+      whereCondition.TerrenoEtiqueta = {
+        some: {
+          etiqueta_id: {
+            in: etiquetas,
+          },
+        },
+      };
+    }
+  
+    // Ejecutar consulta
+    return await prisma.terreno.findMany({
+      where: whereCondition,
+      include: {
+        ImagenTerreno: true,
+        TerrenoEtiqueta: {
+          include: {
+            Etiqueta: true,
+          },
+        },
+      },
+    });
+  }
   
 }
