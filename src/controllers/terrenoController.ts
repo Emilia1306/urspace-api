@@ -18,7 +18,8 @@ export default class TerrenoController {
     try {
       const terreno = await Terreno.getTerrenoById(Number(id));
       if (terreno) {
-        res.status(200).json(terreno);
+        const etiquetas = terreno.TerrenoEtiqueta.map((te) => te.Etiqueta.nombre);
+        res.status(200).json({ ...terreno, etiquetas });
       } else {
         res.status(404).json({ message: "Terreno no encontrado" });
       }

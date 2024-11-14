@@ -11,7 +11,13 @@ export default class Terreno {
   static async getTerrenoById(id: number) {
     return await prisma.terreno.findUnique({
       where: { id_terreno: id },
-      include: { ImagenTerreno: true, Valoracion: true, Reservacion: true },
+      include: { ImagenTerreno: true, Valoracion: true, Reservacion: true, Usuario: true,
+        TerrenoEtiqueta:{
+          include:{
+            Etiqueta: true,
+          }
+        }
+       },
     });
   }
 
@@ -214,12 +220,16 @@ export default class Terreno {
     });
   }
 
-  static async getTerrenosFiltrados(filtros: { country?: string; city?: string; etiquetas?: number[] }) {
+  static async getTerrenosFiltrados(filtros: {
+    country?: string;
+    city?: string;
+    etiquetas?: number[];
+  }) {
     const { country, city, etiquetas } = filtros;
-  
+
     // Construir condiciones de filtrado
     let whereCondition: Prisma.TerrenoWhereInput = {};
-  
+
     if (country && city) {
       // Filtrar por país y ciudad juntos
       whereCondition.ubicacion = {
@@ -233,7 +243,7 @@ export default class Terreno {
         mode: "insensitive",
       };
     }
-  
+
     if (etiquetas && etiquetas.length > 0) {
       // Filtrar por etiquetas
       whereCondition.TerrenoEtiqueta = {
@@ -244,7 +254,7 @@ export default class Terreno {
         },
       };
     }
-  
+
     // Ejecutar consulta
     return await prisma.terreno.findMany({
       where: whereCondition,
@@ -258,5 +268,4 @@ export default class Terreno {
       },
     });
   }
-  
 }
