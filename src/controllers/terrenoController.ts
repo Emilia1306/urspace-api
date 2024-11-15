@@ -321,6 +321,7 @@ export default class TerrenoController {
       const terrenos = await Terreno.getTerrenosExcluyendoUsuario(
         Number(usuario_id)
       );
+      console.log("Terrenos obtenidos (con imágenes) desde el backend:", terrenos);
       res.status(200).json(terrenos);
     } catch (error) {
       res.status(500).json({ message: "Error al obtener terrenos", error });
