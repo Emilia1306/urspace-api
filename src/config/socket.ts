@@ -1,9 +1,12 @@
 import { Server as SocketIOServer } from "socket.io";
 import { Server as HttpServer } from "http";
 import Mensaje from "../models/Mensaje";
+import Notificacion from "../models/Notificacion";
+
+let io: SocketIOServer;
 
 const configureSocket = (server: HttpServer) => {
-  const io = new SocketIOServer(server, {
+  io = new SocketIOServer(server, {
     cors: {
       origin: "*", // Cambia esto en producción
     },
@@ -18,22 +21,34 @@ const configureSocket = (server: HttpServer) => {
       console.log(`Usuario ${socket.id} se unió a la sala ${conversacionId}`);
     });
 
+    // Unirse a una sala de notificaciones personal
+    socket.on("joinUserRoom", (userId) => {
+      socket.join(`user_${userId}`);
+      console.log(`Usuario ${socket.id} se unió a su sala de notificaciones: user_${userId}`);
+    });
+
     // Enviar un mensaje
     socket.on("sendMessage", async (data) => {
       const { conversacionId, usuarioRemitenteId, mensaje } = data;
 
       try {
-        // Guardar el mensaje en la base de datos
-        const nuevoMensaje = await Mensaje.createMensaje(
-          conversacionId,
-          usuarioRemitenteId,
-          mensaje
-        );
-
-        // Emitir el mensaje guardado a todos los usuarios en la sala
+        const nuevoMensaje = await Mensaje.createMensaje(conversacionId, usuarioRemitenteId, mensaje);
         io.to(conversacionId).emit("receiveMessage", nuevoMensaje);
       } catch (error) {
         console.error("Error al guardar el mensaje:", error);
+      }
+    });
+
+    // Enviar una notificación en tiempo real
+    socket.on("sendNotification", async (data) => {
+      const { usuarioId, tipo, mensaje } = data;
+
+      try {
+        const nuevaNotificacion = await Notificacion.createNotificacion(usuarioId, tipo, mensaje);
+        io.to(`user_${usuarioId}`).emit("receiveNotification", nuevaNotificacion);
+        console.log(`Notificación enviada a user_${usuarioId}:`, nuevaNotificacion);
+      } catch (error) {
+        console.error("Error al guardar la notificación:", error);
       }
     });
 
@@ -42,7 +57,12 @@ const configureSocket = (server: HttpServer) => {
       console.log("Usuario desconectado:", socket.id);
     });
   });
+};
 
+export const getSocketInstance = () => {
+  if (!io) {
+    throw new Error("Socket.IO no está inicializado.");
+  }
   return io;
 };
 

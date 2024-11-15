@@ -1,10 +1,10 @@
-import express from "express";
+import express, { RequestHandler } from 'express';
 import OfertaController from "../controllers/ofertaController";
 
 const router = express.Router();
 
 // Crear una nueva oferta
-router.post("/ofertas", OfertaController.create);
+router.post("/ofertas", OfertaController.create as RequestHandler);
 
 // Eliminar una oferta por ID
 router.delete("/ofertas/:id_oferta", OfertaController.delete);

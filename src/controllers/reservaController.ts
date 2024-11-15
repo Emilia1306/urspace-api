@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import Reserva from "../models/Reserva";
+import Terreno from "../models/Terreno";
+import Notificacion from "../models/Notificacion";
 import { EstadoReserva } from "@prisma/client";
+import { getSocketInstance } from "../config/socket";
 
 export default class ReservaController {
   // Crear una nueva reserva
@@ -16,11 +19,14 @@ export default class ReservaController {
     } = req.body;
 
     console.log("Datos recibidos en el backend:", req.body);
-    // Verificar que usuario_id no sea undefined o null
+    
+    // Verificar que id_usuario no sea undefined o null
     if (!id_usuario) {
       return res.status(400).json({ message: "ID de usuario es requerido" });
     }
+
     try {
+      // Crear la reserva
       const nuevaReserva = await Reserva.createReserva(
         fecha_inicio,
         fecha_fin,
@@ -30,6 +36,26 @@ export default class ReservaController {
         terreno_id,
         id_usuario
       );
+
+      // Obtener el terreno y el propietario de la propiedad reservada
+      const terreno = await Terreno.getTerrenoById(terreno_id); // Asegúrate de que exista el método para obtener el terreno
+      if (!terreno) {
+        return res.status(404).json({ message: "Terreno no encontrado" });
+      }
+      const propietarioId = terreno.usuario_id;
+
+      // Crear una notificación para el propietario
+      const notificacionPropietario = await Notificacion.createNotificacion(
+        propietarioId,
+        "reserva",
+        `Se ha hecho una reserva en tu propiedad ${terreno.nombre} para la fecha ${fecha_inicio}.`
+      );
+
+      // Enviar la notificación en tiempo real al propietario usando Socket.IO
+      const io = getSocketInstance();
+      io.to(`user_${propietarioId}`).emit("receiveNotification", notificacionPropietario);
+
+      // Enviar respuesta al cliente
       res.status(201).json(nuevaReserva);
     } catch (error) {
       console.error("Error en el controlador de reservas:", error);
