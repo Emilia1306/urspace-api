@@ -18,7 +18,9 @@ export default class TerrenoController {
     try {
       const terreno = await Terreno.getTerrenoById(Number(id));
       if (terreno) {
-        const etiquetas = terreno.TerrenoEtiqueta.map((te) => te.Etiqueta.nombre);
+        const etiquetas = terreno.TerrenoEtiqueta.map(
+          (te) => te.Etiqueta.nombre
+        );
 
         // Mapeo de valoraciones
         const valoraciones = terreno.Valoracion.map((valoracion) => ({
@@ -36,9 +38,15 @@ export default class TerrenoController {
           valoraciones.reduce((acc, val) => acc + (val.calificacion || 0), 0) /
           (valoraciones.length || 1);
 
-        res.status(200).json({ ...terreno, etiquetas, promedioCalificacion,
-          totalReseñas: valoraciones.length,
-          reseñas: valoraciones, });
+        res
+          .status(200)
+          .json({
+            ...terreno,
+            etiquetas,
+            promedioCalificacion,
+            totalReseñas: valoraciones.length,
+            reseñas: valoraciones,
+          });
       } else {
         res.status(404).json({ message: "Terreno no encontrado" });
       }
@@ -136,46 +144,28 @@ export default class TerrenoController {
       res.status(201).json(nuevoTerreno);
     } catch (error) {
       console.error("Error detallado al crear el terreno:", error);
-      res
-        .status(500)
-        .json({
-          message: "Error al crear el terreno con imágenes y etiquetas",
-          error: error instanceof Error ? error.message : error,
-        });
+      res.status(500).json({
+        message: "Error al crear el terreno con imágenes y etiquetas",
+        error: error instanceof Error ? error.message : error,
+      });
     }
   }
 
   static async update(req: Request, res: Response) {
     const { id } = req.params;
-    const {
-      precio,
-      capacidad,
-      publicado,
-      tipo_terreno,
-      descripcion,
-      ubicacion,
-      nombre,
-      latitud,
-      longitud,
-    } = req.body;
+    const { nombre, descripcion, tipo_terreno, capacidad, precio } = req.body;
 
     try {
       const terrenoActualizado = await Terreno.updateTerreno(Number(id), {
-        precio,
-        capacidad,
-        publicado,
-        tipo_terreno,
-        descripcion,
-        ubicacion,
         nombre,
-        latitud,
-        longitud,
+        descripcion,
+        tipo_terreno,
+        capacidad,
+        precio,
       });
-      res.status(200).json(terrenoActualizado);
+      res.status(200).json({ message: "Propiedad actualizada con éxito", terreno: terrenoActualizado });
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error al actualizar el terreno", error });
+      res.status(500).json({ message: "Error al actualizar el terreno", error });
     }
   }
 
@@ -220,12 +210,10 @@ export default class TerrenoController {
         "Error detallado al obtener terrenos por etiquetas:",
         error
       );
-      return res
-        .status(500)
-        .json({
-          message: "Error al obtener terrenos por etiquetas",
-          error: error instanceof Error ? error.message : error,
-        });
+      return res.status(500).json({
+        message: "Error al obtener terrenos por etiquetas",
+        error: error instanceof Error ? error.message : error,
+      });
     }
   }
 
@@ -237,12 +225,10 @@ export default class TerrenoController {
       res.status(200).json(terrenos);
     } catch (error) {
       console.error("Error detallado al obtener terrenos publicados:", error);
-      res
-        .status(500)
-        .json({
-          message: "Error al obtener el terreno",
-          error: error instanceof Error ? error.stack : error,
-        });
+      res.status(500).json({
+        message: "Error al obtener el terreno",
+        error: error instanceof Error ? error.stack : error,
+      });
     }
   }
 
@@ -252,12 +238,10 @@ export default class TerrenoController {
       res.status(200).json(terrenos);
     } catch (error) {
       console.error("Error detallado al obtener terrenos publicados:", error);
-      res
-        .status(500)
-        .json({
-          message: "Error al obtener terrenos no publicados",
-          error: error,
-        });
+      res.status(500).json({
+        message: "Error al obtener terrenos no publicados",
+        error: error,
+      });
     }
   }
 
@@ -271,11 +255,9 @@ export default class TerrenoController {
       const imagenes = await Terreno.getImagenesByTerrenoId(Number(id));
 
       if (imagenes.length === 0) {
-        return res
-          .status(404)
-          .json({
-            message: "No se encontraron imágenes para el terreno especificado",
-          });
+        return res.status(404).json({
+          message: "No se encontraron imágenes para el terreno especificado",
+        });
       }
 
       return res.status(200).json(imagenes);
@@ -284,12 +266,10 @@ export default class TerrenoController {
         "Error detallado al obtener imágenes por id de terreno:",
         error
       );
-      return res
-        .status(500)
-        .json({
-          message: "Error al obtener las imágenes del terreno",
-          error: error instanceof Error ? error.message : error,
-        });
+      return res.status(500).json({
+        message: "Error al obtener las imágenes del terreno",
+        error: error instanceof Error ? error.message : error,
+      });
     }
   }
 
@@ -312,12 +292,10 @@ export default class TerrenoController {
         "Error detallado al obtener la ubicación del terreno:",
         error
       );
-      return res
-        .status(500)
-        .json({
-          message: "Error al obtener la ubicación del terreno",
-          error: error instanceof Error ? error.message : error,
-        });
+      return res.status(500).json({
+        message: "Error al obtener la ubicación del terreno",
+        error: error instanceof Error ? error.message : error,
+      });
     }
   }
 
@@ -338,9 +316,11 @@ export default class TerrenoController {
 
   static async getTerrenosExcluyendoUsuario(req: Request, res: Response) {
     const { usuario_id } = req.params;
-  
+
     try {
-      const terrenos = await Terreno.getTerrenosExcluyendoUsuario(Number(usuario_id));
+      const terrenos = await Terreno.getTerrenosExcluyendoUsuario(
+        Number(usuario_id)
+      );
       res.status(200).json(terrenos);
     } catch (error) {
       res.status(500).json({ message: "Error al obtener terrenos", error });
@@ -349,14 +329,15 @@ export default class TerrenoController {
 
   static async getTerrenosFiltrados(req: Request, res: Response) {
     const { country, city, etiquetas } = req.body;
-  
+
     try {
       const filtros = {
         country,
         city,
-        etiquetas: etiquetas && Array.isArray(etiquetas) ? etiquetas.map(Number) : [],
+        etiquetas:
+          etiquetas && Array.isArray(etiquetas) ? etiquetas.map(Number) : [],
       };
-  
+
       const terrenos = await Terreno.getTerrenosFiltrados(filtros);
       res.status(200).json(terrenos);
     } catch (error) {
@@ -364,5 +345,4 @@ export default class TerrenoController {
       res.status(500).json({ message: "Error al filtrar terrenos", error });
     }
   }
-  
 }

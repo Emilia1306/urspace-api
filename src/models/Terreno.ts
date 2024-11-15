@@ -105,14 +105,10 @@ export default class Terreno {
     id: number,
     data: Partial<{
       nombre: string;
-      ubicacion: string;
-      latitud: number;
-      longitud: number;
+      descripcion: string;
+      tipo_terreno: TipoTerreno;
       capacidad: number;
       precio: number;
-      tipo_terreno: TipoTerreno;
-      descripcion: string;
-      publicado: boolean;
     }>
   ) {
     return await prisma.terreno.update({
