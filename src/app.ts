@@ -44,7 +44,7 @@ app.use("/api", etiquetaRoutes);
 app.use("/api", ofertaRoutes);
 
 // Set up cron job for reservations
-cron.schedule("*/15 * * * *", async () => {
+cron.schedule("*/1 * * * *", async () => {
   console.log("Ejecutando actualización de estados de reservas cada 15 minutos...");
   await Reserva.actualizarEstadosDeReservas();
 });

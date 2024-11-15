@@ -161,4 +161,24 @@ static async getFechasReservadasByPropiedad(req: Request, res: Response) {
         });
     }
   }
+
+  static async cancelarReserva(req: Request, res: Response) {
+    const { id_reservacion } = req.params;
+
+    try {
+      const reservacionCancelada = await Reserva.updateEstado(
+        Number(id_reservacion),
+        EstadoReserva.Cancelada
+      );
+
+      if (reservacionCancelada) {
+        res.status(200).json({ message: "Reserva cancelada exitosamente", reservacionCancelada });
+      } else {
+        res.status(404).json({ message: "Reserva no encontrada" });
+      }
+    } catch (error) {
+      console.error("Error al cancelar la reserva:", error);
+      res.status(500).json({ message: "Error al cancelar la reserva", error });
+    }
+  }
 }

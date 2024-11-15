@@ -31,4 +31,7 @@ router.get(
   ReservaController.getHistorialByUsuario
 );
 
+router.patch("/reservas/cancelar/:id_reservacion", ReservaController.cancelarReserva as RequestHandler);
+
+
 export default router;
