@@ -2,7 +2,22 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export default class Valoracion {
-
+  static async createValoracion(
+    calificacion: number,
+    comentario: string | null,
+    terreno_id: number,
+    usuario_id: number
+  ) {
+    return await prisma.valoracion.create({
+      data: {
+        calificacion,
+        comentario,
+        fecha_valoracion: new Date(),
+        terreno_id,
+        usuario_id,
+      },
+    });
+  }
 
   static async getValoracionesByTerrenoId(terrenoId: number) {
     return await prisma.valoracion.findMany({

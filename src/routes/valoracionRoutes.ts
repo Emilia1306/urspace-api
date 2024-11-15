@@ -1,4 +1,4 @@
-import express from "express";
+import express, { RequestHandler } from "express";
 import ValoracionController from "../controllers/valoracionController";
 
 const router = express.Router();
@@ -19,5 +19,8 @@ router.get(
     ValoracionController.getPromedioCalificacion(req, res);
   }
 );
+
+router.post("/valoraciones", ValoracionController.createValoracion as RequestHandler);
+
 
 export default router;

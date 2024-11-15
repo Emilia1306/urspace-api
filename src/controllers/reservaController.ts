@@ -181,4 +181,16 @@ static async getFechasReservadasByPropiedad(req: Request, res: Response) {
       res.status(500).json({ message: "Error al cancelar la reserva", error });
     }
   }
+
+  static async getReservasRealizadasPorUsuario(req: Request, res: Response) {
+    const { id_usuario } = req.params;
+
+    try {
+      const reservas = await Reserva.getReservasRealizadasPorUsuario(Number(id_usuario));
+      res.status(200).json(reservas);
+    } catch (error) {
+      console.error("Error al obtener reservas realizadas por el usuario:", error);
+      res.status(500).json({ message: "Error al obtener reservas", error });
+    }
+  }
 }

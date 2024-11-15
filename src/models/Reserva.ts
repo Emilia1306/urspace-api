@@ -143,5 +143,21 @@ static async getFechasReservadasByPropiedad(id_terreno: number) {
       console.error("Error al actualizar estados de reservas:", error);
     }
   }
+
+  static async getReservasRealizadasPorUsuario(id_usuario: number) {
+    return await prisma.reservacion.findMany({
+      where: {
+        usuario_id: id_usuario,
+      },
+      include: {
+        Terreno:{
+          include:{
+            Usuario: true,
+          },
+        },
+        Usuario: true
+      },
+    });
+  }
 }
 

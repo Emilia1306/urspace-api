@@ -12,6 +12,9 @@ router.get(
   ReservaController.getReservasByUsuario
 );
 
+router.get("/reservas/realizadas/:id_usuario", ReservaController.getReservasRealizadasPorUsuario);
+
+
 // Ver reservas por propiedad específica
 router.get(
   "/reservas/propiedad/:id_terreno",
