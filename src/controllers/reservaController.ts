@@ -4,6 +4,7 @@ import Terreno from "../models/Terreno";
 import Notificacion from "../models/Notificacion";
 import { EstadoReserva } from "@prisma/client";
 import { getSocketInstance } from "../config/socket";
+import { format } from "date-fns";
 
 export default class ReservaController {
   // Crear una nueva reserva
@@ -19,7 +20,7 @@ export default class ReservaController {
     } = req.body;
 
     console.log("Datos recibidos en el backend:", req.body);
-    
+
     // Verificar que id_usuario no sea undefined o null
     if (!id_usuario) {
       return res.status(400).json({ message: "ID de usuario es requerido" });
@@ -38,17 +39,20 @@ export default class ReservaController {
       );
 
       // Obtener el terreno y el propietario de la propiedad reservada
-      const terreno = await Terreno.getTerrenoById(terreno_id); // Asegúrate de que exista el método para obtener el terreno
+      const terreno = await Terreno.getTerrenoById(terreno_id);
       if (!terreno) {
         return res.status(404).json({ message: "Terreno no encontrado" });
       }
       const propietarioId = terreno.usuario_id;
 
+      // Formatear la fecha de inicio para la notificación
+      const fechaInicioFormateada = format(new Date(fecha_inicio), "dd/MM/yyyy");
+
       // Crear una notificación para el propietario
       const notificacionPropietario = await Notificacion.createNotificacion(
         propietarioId,
         "reserva",
-        `Se ha hecho una reserva en tu propiedad ${terreno.nombre} para la fecha ${fecha_inicio}.`
+        `Se ha hecho una reserva en tu propiedad ${terreno.nombre} para la fecha ${fechaInicioFormateada}.`
       );
 
       // Enviar la notificación en tiempo real al propietario usando Socket.IO
@@ -62,7 +66,7 @@ export default class ReservaController {
       res.status(500).json({ message: "Error al crear la reserva", error });
     }
   }
-
+  
   // Ver reservas de las propiedades de un solo usuario
   static async getReservasByUsuario(req: Request, res: Response) {
     const { id_usuario } = req.params;
