@@ -11,7 +11,7 @@ export default class Reserva {
     subtotal: number,
     precio_total: number,
     terreno_id: number,
-    usuario_id: number
+    id_usuario: number
   ) {
     return await prisma.reservacion.create({
       data: {
@@ -22,7 +22,7 @@ export default class Reserva {
         precio_total,
         estado: EstadoReserva.Pendiente,
         terreno_id,
-        usuario_id,
+        usuario_id: id_usuario,
       },
     });
   }
@@ -52,6 +52,34 @@ export default class Reserva {
       },
     });
   }
+
+  // Obtener solo fechas de reservas por propiedad específica
+static async getFechasReservadasByPropiedad(id_terreno: number) {
+  const reservas = await prisma.reservacion.findMany({
+    where: { terreno_id: id_terreno, estado: EstadoReserva.EnCurso }, // Solo reservas activas
+    select: {
+      fecha_inicio: true,
+      fecha_fin: true,
+    },
+  });
+
+  // Crear un arreglo de fechas reservadas
+  const reservedDates = reservas.flatMap((reservation) => {
+    const dates = [];
+    let currentDate = new Date(reservation.fecha_inicio);
+    currentDate.setUTCHours(0, 0, 0, 0);
+
+    while (currentDate <= reservation.fecha_fin) {
+      dates.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return dates;
+  });
+
+  return reservedDates;
+}
+
 
   // Cambiar el estado de una reserva
   static async updateEstado(id_reservacion: number, estado: EstadoReserva) {

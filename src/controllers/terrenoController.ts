@@ -19,7 +19,26 @@ export default class TerrenoController {
       const terreno = await Terreno.getTerrenoById(Number(id));
       if (terreno) {
         const etiquetas = terreno.TerrenoEtiqueta.map((te) => te.Etiqueta.nombre);
-        res.status(200).json({ ...terreno, etiquetas });
+
+        // Mapeo de valoraciones
+        const valoraciones = terreno.Valoracion.map((valoracion) => ({
+          usuario: {
+            nombre: valoracion.Usuario.nombres,
+            apellido: valoracion.Usuario.apellidos,
+          },
+          calificacion: valoracion.calificacion,
+          comentario: valoracion.comentario,
+          fecha: valoracion.fecha_valoracion.toISOString().split("T")[0], // Formato YYYY-MM-DD
+        }));
+
+        // Cálculo del promedio de calificaciones
+        const promedioCalificacion =
+          valoraciones.reduce((acc, val) => acc + (val.calificacion || 0), 0) /
+          (valoraciones.length || 1);
+
+        res.status(200).json({ ...terreno, etiquetas, promedioCalificacion,
+          totalReseñas: valoraciones.length,
+          reseñas: valoraciones, });
       } else {
         res.status(404).json({ message: "Terreno no encontrado" });
       }

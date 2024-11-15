@@ -11,13 +11,21 @@ export default class Terreno {
   static async getTerrenoById(id: number) {
     return await prisma.terreno.findUnique({
       where: { id_terreno: id },
-      include: { ImagenTerreno: true, Valoracion: true, Reservacion: true, Usuario: true,
-        TerrenoEtiqueta:{
-          include:{
+      include: {
+        ImagenTerreno: true,
+        Reservacion: true,
+        Usuario: true,
+        TerrenoEtiqueta: {
+          include: {
             Etiqueta: true,
+          },
+        },
+        Valoracion: {
+          include:{
+            Usuario: true,
           }
-        }
-       },
+        },
+      },
     });
   }
 

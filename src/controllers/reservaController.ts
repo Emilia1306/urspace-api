@@ -12,9 +12,14 @@ export default class ReservaController {
       subtotal,
       precio_total,
       terreno_id,
-      usuario_id,
+      id_usuario,
     } = req.body;
 
+    console.log("Datos recibidos en el backend:", req.body);
+    // Verificar que usuario_id no sea undefined o null
+    if (!id_usuario) {
+      return res.status(400).json({ message: "ID de usuario es requerido" });
+    }
     try {
       const nuevaReserva = await Reserva.createReserva(
         fecha_inicio,
@@ -23,10 +28,11 @@ export default class ReservaController {
         subtotal,
         precio_total,
         terreno_id,
-        usuario_id
+        id_usuario
       );
       res.status(201).json(nuevaReserva);
     } catch (error) {
+      console.error("Error en el controlador de reservas:", error);
       res.status(500).json({ message: "Error al crear la reserva", error });
     }
   }
@@ -58,6 +64,35 @@ export default class ReservaController {
         .json({ message: "Error al obtener reservas de la propiedad", error });
     }
   }
+
+  // Obtener solo fechas reservadas de una propiedad específica
+// Obtener solo las fechas reservadas de un terreno específico
+static async getFechasReservadasByPropiedad(req: Request, res: Response) {
+  const { id_terreno } = req.params;
+
+  try {
+    const reservas = await Reserva.getReservasByPropiedad(Number(id_terreno));
+
+    // Mostrar en la consola para verificar los datos de reservas obtenidos
+    console.log("Reservas obtenidas:", reservas);
+
+    const fechasReservadas = reservas.map((reserva) => ({
+      startDate: reserva.fecha_inicio.toISOString().split("T")[0],
+      endDate: reserva.fecha_fin.toISOString().split("T")[0],
+    }));
+
+    console.log("Fechas reservadas procesadas:", fechasReservadas);
+
+    res.status(200).json({ fechasReservadas });
+  } catch (error) {
+    console.error("Error al obtener las fechas reservadas:", error);
+    res
+      .status(500)
+      .json({ message: "Error al obtener las fechas reservadas", error });
+  }
+}
+
+
 
   // Cambiar el estado de la reserva
   static async updateEstado(req: Request, res: Response) {

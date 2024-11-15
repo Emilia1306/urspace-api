@@ -1,10 +1,10 @@
-import express from "express";
+import express, { RequestHandler } from "express";
 import ReservaController from "../controllers/reservaController";
 
 const router = express.Router();
 
 // Crear una nueva reserva
-router.post("/reservas", ReservaController.create);
+router.post("/reservas", ReservaController.create as RequestHandler);
 
 // Ver reservas de las propiedades de un solo usuario
 router.get(
@@ -17,6 +17,10 @@ router.get(
   "/reservas/propiedad/:id_terreno",
   ReservaController.getReservasByPropiedad
 );
+
+// Obtener solo fechas reservadas por propiedad específica
+router.get("/reservas/propiedad/:id_terreno/fechas-reservadas", ReservaController.getFechasReservadasByPropiedad);
+
 
 // Cambiar el estado de la reserva
 router.patch("/reservas/:id_reservacion", ReservaController.updateEstado);
